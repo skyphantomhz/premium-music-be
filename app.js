@@ -1,35 +1,47 @@
-const express = require('express');
-var youtubeStream = require('youtube-audio-stream');
-const app = express();
+const express = require('express')
+const { exec } = require('child_process');
+const app = express()
 
-app.use('/static', express.static('./static'));
+app.use('/static', express.static('./static'))
 const port = 3000
 
-app.get('/', (req, res) => { 
-    res.sendFile('index.html', { root: './' });
-});
+app.get('/', (req, res) => {
+    res.sendFile('index.html', { root: './' })
+})
 
 app.get('/download', (req, res) => {
+    var url = req.query.url
+    console.log("Url: "+url)
+    console.log("Url decoded: "+decodeURI(url))
+    exec('youtube-dl --get-url --extract-audio --audio-format=mp3 --audio-quality=0 ' + decodeURI(url),
+        (error, stdout, stderr) => {+
+            console.log("stdout======"+stdout);
+            console.log("stderr======="+stderr);
+            if (error !== null) {
+                console.log("500 "+error )
+                res.status(500).send(responseError(error))
+            } else {
+                console.log("200 "+stdout )
+                res.status(200).send(responseSuccess(stdout))
+            }
+        });
+})
 
-    var url = req.query.url;  
-    try {
-        console.log("return");
-        youtubeStream(url).pipe(res)
-    } catch (exception) {
-        res.status(500).send(exception)
+function responseSuccess(data) {
+    return {
+        "status_code": 1,
+        "message": "Response success",
+        "data": data
     }
-    
-    // var url = req.query.url;    
-    // res.header("Content-Disposition", 'attachment;\  filename="Video.mp4');    
-    // // ytdl(url, {format: 'mp4'}).pipe(res);
-    // let videoID =  ytdl.getURLVideoID(url);
-    // console.log(`VideoId: ${videoID}`);
-    // ytdl.getInfo(videoID, (err, info) => {
-    //     if (err) throw err;
-    //     let audioFormats = ytdl.filterFormats(info.formats, 'audioonly');
-    //     console.log('Formats with only audio: ' + audioFormats.length);
-    //     ytdl(req.query.url, {filter: format => audioFormats}).pipe(res);
-    //   });
-});
+}
+
+function responseError(error) {
+    return {
+        "status_code": 2,
+        "message": error,
+        "data": null
+    }
+}
+
 
 app.listen(port, () => console.log(`Example app listening at http://localhost:${port}`))

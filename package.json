@@ -4,9 +4,8 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
-    "express": "^4.17.1",
-    "speaker": "^0.5.1",
-    "youtube-audio-stream": "^0.3.5"
+    "command": "0.0.5",
+    "express": "^4.17.1"
   },
   "devDependencies": {},
   "scripts": {
